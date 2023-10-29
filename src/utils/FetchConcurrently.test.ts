@@ -41,18 +41,18 @@ test("FetchConcurrently can effectively fetch", async () => {
   });
 });
 
-test("FetchConcurrently won't fetch more than the limit given", async () => {
-  const fetchConcurrently = new FetchConcurrently<string>(2);
+test("FetchConcurrently won't fetch more than the limit given at the same time", async () => {
+  const fetchConcurrently = new FetchConcurrently<string>(3);
 
   const promise1 = fetchConcurrently.run("https://jsonplaceholder.typicode.com/todos/1");
   const promise2 = fetchConcurrently.run("https://jsonplaceholder.typicode.com/todos/2");
   const promise3 = fetchConcurrently.run("https://jsonplaceholder.typicode.com/todos/3");
   const promise4 = fetchConcurrently.run("https://jsonplaceholder.typicode.com/todos/4");
 
-    // Wait for all promises to resolve
-    await Promise.all([promise1, promise2, promise3, promise4]);
+    // Send all promises together
+    Promise.all([promise1, promise2, promise3, promise4]);
 
-    // Check that no more than 2 requests were executed at the same time
-    assert(fetchConcurrently["inProgress"].size <= 2);
-    console.log(fetchConcurrently["inProgress"].size);
+    // Check that no more than 3 requests were executed at the same time
+    assert(fetchConcurrently["inProgress"].size <= 3);
+    assert((fetchConcurrently["inProgress"].size <= 2) === false);
 });
