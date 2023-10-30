@@ -2,13 +2,30 @@ import { test } from "vitest";
 import assert from "assert";
 import FetchConcurrently from "./FetchConcurrently";
 
-test("FetchConcurrently can effectively fetch", async () => {
-  const fetchConcurrently = new FetchConcurrently<string>(2);
+type Todo = {
+  userId: number;
+  id: number;
+  title: string;
+  completed: boolean;
+};
 
-  const promise1 = fetchConcurrently.run("https://jsonplaceholder.typicode.com/todos/1");
-  const promise2 = fetchConcurrently.run("https://jsonplaceholder.typicode.com/todos/2");
-  const promise3 = fetchConcurrently.run("https://jsonplaceholder.typicode.com/todos/3");
-  const promise4 = fetchConcurrently.run("https://jsonplaceholder.typicode.com/todos/4");
+async function fetchTodo(id: number) {
+  try {
+    const response = await fetch(`https://jsonplaceholder.typicode.com/todos/${id}`);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    throw new Error("Error fetching data");
+  }
+}
+
+test("FetchConcurrently can effectively fetch", async () => {
+  const fetchConcurrently = new FetchConcurrently(2);
+
+  const promise1 = fetchConcurrently.add<Todo>(() => fetchTodo(1));
+  const promise2 = fetchConcurrently.add<Todo>(() => fetchTodo(2));
+  const promise3 = fetchConcurrently.add<Todo>(() => fetchTodo(3));
+  const promise4 = fetchConcurrently.add<Todo>(() => fetchTodo(4));
 
   const result1 = await promise1;
   const result2 = await promise2;
@@ -42,12 +59,12 @@ test("FetchConcurrently can effectively fetch", async () => {
 });
 
 test("FetchConcurrently won't fetch more than the limit given at the same time", async () => {
-  const fetchConcurrently = new FetchConcurrently<string>(3);
+  const fetchConcurrently = new FetchConcurrently(3);
 
-  const promise1 = fetchConcurrently.run("https://jsonplaceholder.typicode.com/todos/1");
-  const promise2 = fetchConcurrently.run("https://jsonplaceholder.typicode.com/todos/2");
-  const promise3 = fetchConcurrently.run("https://jsonplaceholder.typicode.com/todos/3");
-  const promise4 = fetchConcurrently.run("https://jsonplaceholder.typicode.com/todos/4");
+  const promise1 = fetchConcurrently.add<Todo>(() => fetchTodo(1));
+  const promise2 = fetchConcurrently.add<Todo>(() => fetchTodo(2));
+  const promise3 = fetchConcurrently.add<Todo>(() => fetchTodo(3));
+  const promise4 = fetchConcurrently.add<Todo>(() => fetchTodo(4));
 
     // Send all promises together
     Promise.all([promise1, promise2, promise3, promise4]);

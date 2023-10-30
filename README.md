@@ -2,9 +2,9 @@
 
 This is a work in progress attempt at building a fetch wrapper that can limit the number of concurrent requests.
 
-It is here implemented in a react application but it is agnostic to the framework used.
+Though implemented here in a react application, it is agnostic to the framework used.
 
-The class is located in `src/utils/ConcurrentFetch.ts`.
+The FetchConcurrently class is located in `src/utils/FetchConcurrently.ts`.
 
 ## Installation
 ```bash
