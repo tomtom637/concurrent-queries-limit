@@ -5,50 +5,47 @@
  * 
  * 1. **Instantiation**:
  * 
- * We give it the number of concurrent fetches allowed and optionally our
- * data type, as follows:
+ * We give it the number of concurrent fetches allowed, as follows:
  * 
  * ```ts
- * const fetchConcurrently = new FetchConcurrently<DataType[]>(2);
+ * const fetchConcurrently = new FetchConcurrently(2);
  * ```
- * _In this example we gave fetchConcurrently our dataType and limited concurrent_
- * _queries to 2 at a time_
+ * _In this example we limited concurrent queries to 2 at a time_
  * 
  * 2. **Usage**:
  * 
- * We can then use the instance to add urls to fetch:
+ * We can then use the instance to add any fetch request along with our data type:
+ * 
  * 
  * ```ts
- * function getMyDataConcurrently(id: number) {
- *   return fetchConcurrently.run(`https://myURL/myData/${id}`);
+ * // Here is our conventional fetch request
+ * async function getData(id: number) {
+ *   try {
+ *     const response = await fetch(`https://website/data/${id}`);
+ *     const data = await response.json();
+ *     return data;
+ *   } catch (error) {
+ *     // Error handling
+ *   }
+ * // We feed it to the add method along with with our generic data type
+ * function getDataConcurrently(id: number) {
+ *   return fetchConcurrently.add<DataType>(() => getData(id));
  * }
  * ```
 */
-export default class FetchConcurrently<T> {
-  private urls = new Set<string>();
-  private inProgress = new Set<Promise<T>>();
+export default class FetchConcurrently {
+  private fetchPromises = new Set<() => Promise<unknown>>();
+  private inProgress = new Set<Promise<unknown>>();
   private concurrency: number;
 
   constructor(concurrency: number) {
     this.concurrency = concurrency;
   }
 
-  /** Fetches a url and returns the data */
-  private async fetchConcurrently(url: string) {
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message);
-      return data;
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
   /** Adds a url to be fetched concurrently and returns the promised result */
-  async run(url: string) {
+  async add<T>(fetchPromise: () => Promise<T>) {
     // Add url to urls to be fetched
-    this.urls.add(url);
+    this.fetchPromises.add(fetchPromise);
 
     // Promise.race will return the first promise that resolves or rejects
     while (this.inProgress.size >= this.concurrency) {
@@ -56,7 +53,7 @@ export default class FetchConcurrently<T> {
     }
 
     // Fetch the url, then remove it from inProgress
-    const promise = this.fetchConcurrently(url).then((result: T) => {
+    const promise = fetchPromise().then((result: T) => {
       this.inProgress.delete(promise);
       return result;
     });

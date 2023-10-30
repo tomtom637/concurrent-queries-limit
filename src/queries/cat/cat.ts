@@ -1,7 +1,7 @@
 import { Cat } from "./type";
 import FetchConcurrently from "@/utils/FetchConcurrently";
 
-const fetchConcurrently = new FetchConcurrently<Cat[]>(2);
+const fetchConcurrently = new FetchConcurrently(2);
 
 export async function getCats() {
   const response = await fetch("http://localhost:3004/cats");
@@ -10,11 +10,15 @@ export async function getCats() {
 }
 
 export async function getCat(id: number) {
-  const response = await fetch(`http://localhost:3004/cats/${id}`);
-  const data: Cat = await response.json();
-  return data;
+  try {
+    const response = await fetch(`http://localhost:3004/cats/${id}`);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 export async function getCatsConcurrently(id: number) {
-  return fetchConcurrently.run(`http://localhost:3004/cats/${id}`);
+  return fetchConcurrently.add<Cat>(() => getCat(id));
 }
