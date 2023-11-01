@@ -20,7 +20,7 @@ jobs:
     - name: Start json-server on port 3004
       run: npx json-server --watch src/assets/db.json --port 3004 &
     - name: start the app
-      run: pnpm exec dev
+      run: pnpm exec vite
     - name: Run Playwright tests
       run: pnpm exec playwright test
     - uses: actions/upload-artifact@v3
