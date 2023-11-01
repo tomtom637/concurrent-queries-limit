@@ -14,7 +14,7 @@ jobs:
       with:
         node-version: 18
     - name: Install dependencies
-      run: npm install -g pnpm && pnpm add -g json-server && pnpm install
+      run: npm install -g pnpm && pnpm install -g json-server && pnpm install
     - name: Install Playwright Browsers
       run: pnpm exec playwright install --with-deps
     - name: start json-server for mock data
