@@ -14,11 +14,11 @@ jobs:
       with:
         node-version: 18
     - name: Install dependencies
-      run: npm install -g pnpm && pnpm install -g json-server && pnpm install
+      run: npm install -g pnpm && pnpm install
     - name: Install Playwright Browsers
       run: pnpm exec playwright install --with-deps
-    - name: start json-server for mock data
-      run: pnpm json
+    - name: Start json-server on port 3004
+      run: npx json-server --watch src/assets/db.json --port 3004
     - name: Run Playwright tests
       run: pnpm exec playwright test
     - uses: actions/upload-artifact@v3
